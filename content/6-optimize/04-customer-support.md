@@ -4,10 +4,10 @@ metaTitle: "Customer Support | WP"
 metaDescription: "Plan and organize human resources, tools, documentation, training required, communication and troubleshooting capabilities to provide great customer service."
 published: true
 metaTags:
-- Optimize
-- Winning Product
-- Customer Support
-- Customer Success
+  - Optimize
+  - Winning Product
+  - Customer Support
+  - Customer Success
 checklist: 
   -
     order: 1
