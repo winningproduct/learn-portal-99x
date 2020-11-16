@@ -4,7 +4,7 @@ metaTitle: "Log Indexing and Analysis | WP"
 metaDescription: "Process of reviewing, interpreting, and understanding logs to identify application health and to diagnose and rectify issues. Use this also to enable data-driven decision making."
 published: true
 
-tags:
+metaTags:
   - Optimize
   - Log Indexing and Analysis
   - Winning Product
