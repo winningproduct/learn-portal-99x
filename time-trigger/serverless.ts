@@ -1,6 +1,6 @@
 import type { AWS } from "@serverless/typescript";
 
-import hello from "@functions/hello";
+import questions from "@functions/questions";
 
 const serverlessConfiguration: AWS = {
   service: "time-trigger",
@@ -33,7 +33,7 @@ const serverlessConfiguration: AWS = {
     lambdaHashingVersion: "20201221"
   },
   // import the function via paths
-  functions: { hello }
+  functions: { questions }
 };
 
 module.exports = serverlessConfiguration;

@@ -7,7 +7,7 @@ export default {
     {
       http: {
         method: 'get',
-        path: 'hello',
+        path: 'questions',
         request: {
           schema: {
             'application/json': schema
