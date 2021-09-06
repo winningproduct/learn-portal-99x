@@ -11,7 +11,7 @@ metaTags:
 checklist: 
   -
     order: 1
-    question: Do you have a pitch deck to present your product?
+    question: Do you have a pitch deck to present your product TEST?
     expectation: Define the competition within your industry. Identify the companies that share the market with products or services that are in direct and indirect competition with your business.
     version: 1.0.0
   -
@@ -93,4 +93,3 @@ When pitching to onboard a potential employee, it’s important to communicate t
 ## References
 
 - [When Pitching Investors, Your Product Doesn't Matter](https://www.entrepreneur.com/article/322361)
-- [Creating a pitch for various stakeholders](https://fi.co/insight/creating-an-elevator-pitch-that-attracts-investors-customers-and-more)
