@@ -16,7 +16,9 @@
     "@types/lodash": "^4.14.172",
     "axios": "^0.21.1",
     "lodash": "^4.17.21",
-    "source-map-support": "^0.5.19"
+    "mysql": "^2.18.1",
+    "source-map-support": "^0.5.19",
+    "typeorm": "^0.2.37"
   },
   "devDependencies": {
     "@serverless/typescript": "^2.23.0",
