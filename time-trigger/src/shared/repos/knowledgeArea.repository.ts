@@ -6,7 +6,7 @@ import {QuestionDraft} from "./mysql/entity/question_draft";
 
 @EntityRepository(QuestionDraft)
 export class KnowledgeAreaRepository extends AbstractRepository<KnowledgeArea> implements IKnowledgeAreaRepository {
-    async getKnowledgeAreaWithUrl(): Promise<KnowledgeArea> {
+    async getKnowledgeAreaWithUrl(): Promise<Array<KnowledgeArea>> {
         let connection: any;
         try {
             connection = await initMysql();
