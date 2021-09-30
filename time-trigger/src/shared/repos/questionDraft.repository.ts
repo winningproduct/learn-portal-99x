@@ -1,0 +1,28 @@
+import { IQuestionDraftRepository } from '../abstract/repos/questionDraft.repository.interface';
+import { initMysql } from './mysql/connection.manager';
+import { QuestionDraft } from './mysql/entity/question_draft';
+
+export class MySQLQuestionDraftRepository implements IQuestionDraftRepository {
+  async addQuestion(_questionDraft: QuestionDraft): Promise<boolean> {
+    let connection: any;
+    try {
+      connection = await initMysql();
+      const questionDraft = new QuestionDraft();
+      questionDraft.id = Number(_questionDraft.id);
+      questionDraft.questionDescription = _questionDraft.questionDescription;
+      questionDraft.knowledgeAreaId = Number(_questionDraft.knowledgeAreaId);
+      questionDraft.version = _questionDraft.version;
+      questionDraft.majorVersion = _questionDraft.majorVersion;
+      questionDraft.minorVersion = _questionDraft.minorVersion;
+      questionDraft.patchVersion = _questionDraft.patchVersion;
+      await connection.manager.save(questionDraft);
+      return true;
+    } catch (err) {
+      throw err;
+    } finally {
+      if (connection != null) {
+        await connection.close();
+      }
+    }
+  }
+}
