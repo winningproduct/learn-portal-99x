@@ -18,7 +18,7 @@ export async function initMysql() {
       password: "",
       database: "",
       entities: [QuestionDraft, KnowledgeArea],
-      synchronize: true,
+      synchronize: false,
       logging: false
     });
     _connection = await connection.connect();
