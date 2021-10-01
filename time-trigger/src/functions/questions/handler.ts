@@ -4,7 +4,7 @@ import type { ValidatedEventAPIGatewayProxyEvent } from "@libs/apiGateway";
 import { formatJSONResponse } from "@libs/apiGateway";
 import { middyfy } from "@libs/lambda";
 import axios from "axios";
-import { get, forEach, find } from "lodash";
+import { get, forEach, find, filter, orderBy } from "lodash";
 
 import schema from "./schema";
 import { QuestionDraftRepository } from "src/shared/repos/questionDraft.repository";
@@ -16,7 +16,7 @@ import { initMysql } from "src/shared/repos/mysql/connection.manager";
 import { Connection } from "typeorm";
 
 function getUrl(url: string): string {
-  var urlArr = url.trim().split("/");
+  const urlArr = url.trim().split("/");
   return (
     "https://learn.winningproduct.com/page-data/" +
     urlArr[3] +
@@ -40,48 +40,49 @@ function transformKnowledgeAreaToApiUrl(
   );
 }
 
-function getMajorQuestions(
+function getQuestions(
   allQuestions: Array<QuestionDraft>,
   questionList: Array<QuestionDraft>
-) {
+) : any {
   let allMajorQuestions = [];
-  forEach(questionList, (apiQuestion) => {
-    const majorQuestion = find(
-      allQuestions,
-      (dbQuestion) =>
-        apiQuestion.orderId === dbQuestion.orderId &&
-        apiQuestion.majorVersion > dbQuestion.majorVersion
-    );
-    if (majorQuestion) {
-      allMajorQuestions = [...allMajorQuestions, majorQuestion];
-    } else {
-      allMajorQuestions = [...allMajorQuestions, apiQuestion];
-    }
-  });
-  return allMajorQuestions;
-}
-
-function getMinorQuestions(
-  allQuestions: Array<QuestionDraft>,
-  questionList: Array<QuestionDraft>
-) {
   let allMinorQuestions = [];
   forEach(questionList, (apiQuestion) => {
-    const majorQuestion = find(
-      allQuestions,
-      (dbQuestion) =>
-        apiQuestion.orderId === dbQuestion.orderId &&
-        apiQuestion.majorVersion === dbQuestion.majorVersion
+    // find all question related to that knowledge area and order id but different versions
+    const questionsInKnowledgeArea = filter(
+        allQuestions,
+        (dbQuestion) =>
+            apiQuestion.knowledgeAreaId === dbQuestion.knowledgeAreaId &&
+            apiQuestion.orderId === dbQuestion.orderId
     );
-    if (majorQuestion)
-      allMinorQuestions = [...allMinorQuestions, majorQuestion];
+
+    const latestQuestionsInKnowledgeArea = orderBy(
+        questionsInKnowledgeArea, ['majorVersion'], ['desc']
+    );
+
+    const latestQuestionInKnowledgeArea = latestQuestionsInKnowledgeArea[0];
+
+    if (!latestQuestionInKnowledgeArea || apiQuestion.majorVersion > latestQuestionInKnowledgeArea.majorVersion) {
+      allMajorQuestions = [...allMajorQuestions, apiQuestion];
+    } else {
+      // if not the same minor version then update else ignore
+      const matchingVersionQuestion = find(
+          latestQuestionsInKnowledgeArea, (knowledgeAreaQuestion) =>
+              (knowledgeAreaQuestion.majorVersion == apiQuestion.majorVersion &&
+              (knowledgeAreaQuestion.minorVersion < apiQuestion.minorVersion
+                  || knowledgeAreaQuestion.patchVersion < apiQuestion.patchVersion))
+      );
+      if(matchingVersionQuestion){
+        allMinorQuestions = [...allMinorQuestions, apiQuestion];
+      }
+    }
   });
-  return allMinorQuestions;
+
+  return ({ 'majorQuestionList': allMajorQuestions, 'minorQuestionList': allMinorQuestions });
 }
 
 async function getJsonData(knowledgeDtoList: Array<KnowledgeDto>) {
   for (let area of knowledgeDtoList) {
-    var res = await axios.get(area.apiUrl);
+    const res = await axios.get(area.apiUrl);
     area.questions = get(res, "data.result.data.mdx.frontmatter.checklist");
   }
   return knowledgeDtoList;
@@ -97,23 +98,23 @@ const questions: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
     const allQuestions = await questionDraftRepository.getAllUniqueQuestions(
       connection
     );
-    const getKnowldegeBaseFromDb =
+    const getKnowledgeBaseFromDb =
       await knowledgeBaseRepository.getKnowledgeAreaWithUrl(connection);
     const knowledgeDtoList = transformKnowledgeAreaToApiUrl(
-      getKnowldegeBaseFromDb
+      getKnowledgeBaseFromDb
     );
-    const checkListPerKnowldgeArea = await getJsonData(knowledgeDtoList);
+    const checkListPerKnowledgeArea = await getJsonData(knowledgeDtoList);
 
     const questionList = new Array<QuestionDraft>();
-    checkListPerKnowldgeArea.forEach((area) => {
+    checkListPerKnowledgeArea.forEach((area) => {
       area.questions?.forEach((question) => {
         if (question.version != null) {
-          var questionDraft = new QuestionDraft();
+          const questionDraft = new QuestionDraft();
           questionDraft.knowledgeAreaId = area.id;
           questionDraft.questionDescription = question.question;
           questionDraft.orderId = question.order;
           questionDraft.version = question.version;
-          var versioningArray = question.version?.split(".", 3);
+          const versioningArray = question.version?.split(".", 3);
           questionDraft.majorVersion = versioningArray[0] ?? 0;
           questionDraft.minorVersion = versioningArray[1] ?? 0;
           questionDraft.patchVersion = versioningArray[2] ?? 0;
@@ -122,19 +123,17 @@ const questions: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
       });
     });
 
-    const insertQuestionsList = getMajorQuestions(allQuestions, questionList);
-    const updateQuestionsList = getMinorQuestions(allQuestions, questionList);
+    const questionsList = getQuestions(allQuestions, questionList);
 
     await questionDraftRepository.addQuestions(
       connection,
-      insertQuestionsList
+        questionsList.majorQuestionList
     );
 
-    let updateResponse = [];
-    if (updateQuestionsList && updateQuestionsList.length) {
+    if (questionsList.minorQuestionList && questionsList.minorQuestionList.length) {
       let updatePromises = [];
       forEach(
-        updateQuestionsList,
+          questionsList.minorQuestionList,
         ({
           orderId,
           knowledgeAreaId,
@@ -160,10 +159,11 @@ const questions: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
         }
       );
       if (updatePromises && updatePromises.length)
-        updateResponse = await Promise.allSettled(updatePromises);
+          await Promise.allSettled(updatePromises);
     }
+
     return formatJSONResponse({
-      message: [updateResponse]
+      message: [questionsList]
     });
   } catch (error) {
     console.error(error);
