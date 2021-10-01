@@ -125,7 +125,7 @@ const questions: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
     const insertQuestionsList = getMajorQuestions(allQuestions, questionList);
     const updateQuestionsList = getMinorQuestions(allQuestions, questionList);
 
-    const insertResponse = await questionDraftRepository.addQuestions(
+    await questionDraftRepository.addQuestions(
       connection,
       insertQuestionsList
     );
