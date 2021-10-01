@@ -1,38 +1,68 @@
-import { IQuestionDraftRepository } from '../abstract/repos/questionDraft.repository.interface';
-import { initMysql } from './mysql/connection.manager';
-import { QuestionDraft } from './mysql/entity/question_draft';
-import {AbstractRepository, EntityRepository} from "typeorm";
+import { IQuestionDraftRepository } from "../abstract/repos/questionDraft.repository.interface";
+
+import { QuestionDraft } from "./mysql/entity/question_draft";
+import {
+  AbstractRepository,
+  EntityRepository,
+  Connection,
+  InsertResult,
+  UpdateResult
+} from "typeorm";
 
 @EntityRepository(QuestionDraft)
-export class QuestionDraftRepository extends AbstractRepository<QuestionDraft> implements IQuestionDraftRepository {
-  async addQuestion(_questionDraft: Array<QuestionDraft>): Promise<boolean> {
-    let connection: any;
-    try {
-      connection = await initMysql();
-      await connection.manager.save(_questionDraft);
-      return true;
-    } catch (err) {
-      throw err;
-    }
+export class QuestionDraftRepository
+  extends AbstractRepository<QuestionDraft>
+  implements IQuestionDraftRepository
+{
+  async addQuestions(
+    connection: Connection,
+    questionDraft: Array<QuestionDraft>
+  ): Promise<InsertResult> {
+    return connection
+      .getRepository(QuestionDraft)
+      .createQueryBuilder()
+      .insert()
+      .into(QuestionDraft)
+      .values(questionDraft)
+      .execute();
   }
 
-  async getAllQuestions(): Promise<Array<QuestionDraft>> {
-    let connection: any;
-    try {
-        connection = await initMysql();
-        return await connection.getRepository().getMany();
-    } catch (err) {
-        throw err;
-    }
+  async getAllUniqueQuestions(
+    connection: Connection
+  ): Promise<Array<QuestionDraft>> {
+    return connection
+      .getRepository(QuestionDraft)
+      .createQueryBuilder("questiondraft")
+      .distinctOn([
+        "questiondraft.orderId",
+        "questiondraft.knowledgeAreaId",
+        "questiondraft.majorVersion",
+        "questiondraft.patchVersion",
+        "questiondraft.minorVersion "
+      ])
+      .getMany();
   }
 
-  async updateQuestions(): Promise<Array<QuestionDraft>> {
-    let connection: any;
-    try {
-        connection = await initMysql();
-        return await connection.getRepository().getMany();
-    } catch (err) {
-        throw err;
-    }
+  async updateQuestions(
+    connection: Connection,
+    orderId: number,
+    knowledgeAreaId: number,
+    majorVersion: number,
+    minorVersion: number,
+    patchVersion: number,
+    questionDescription: string,
+    version: string
+  ): Promise<UpdateResult> {
+    return connection
+      .getRepository(QuestionDraft)
+      .createQueryBuilder()
+      .update(QuestionDraft)
+      .set({ minorVersion, patchVersion, questionDescription, version })
+      .where("orderId = :orderId", { orderId })
+      .andWhere("knowledgeAreaId = :knowledgeAreaId", {
+        knowledgeAreaId
+      })
+      .andWhere("majorVersion = :majorVersion", { majorVersion })
+      .execute();
   }
 }

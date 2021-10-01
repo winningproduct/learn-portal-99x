@@ -1,5 +1,10 @@
-import { QuestionDraft } from 'src/shared/repos/mysql/entity/question_draft';
+import { QuestionDraft } from "src/shared/repos/mysql/entity/question_draft";
+import { Connection, InsertResult } from "typeorm";
 
 export interface IQuestionDraftRepository {
-  addQuestion(questionDraft: Array<QuestionDraft>): Promise<boolean>
+  addQuestions(
+    connection: Connection,
+    questionDraft: Array<QuestionDraft>
+  ): Promise<InsertResult>;
+  getAllUniqueQuestions(connection: Connection): Promise<Array<QuestionDraft>>;
 }

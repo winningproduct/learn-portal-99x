@@ -1,18 +1,19 @@
-import {IKnowledgeAreaRepository} from "../abstract/repos/knowledgeArea.repository.interface";
-import {KnowledgeArea} from "./mysql/entity/knowledgeArea";
-import {initMysql} from "./mysql/connection.manager";
-import {AbstractRepository, EntityRepository} from "typeorm";
-import {QuestionDraft} from "./mysql/entity/question_draft";
+import { IKnowledgeAreaRepository } from "../abstract/repos/knowledgeArea.repository.interface";
+import { KnowledgeArea } from "./mysql/entity/knowledgeArea";
+import { AbstractRepository, EntityRepository, Connection } from "typeorm";
+import { QuestionDraft } from "./mysql/entity/question_draft";
 
 @EntityRepository(QuestionDraft)
-export class KnowledgeAreaRepository extends AbstractRepository<KnowledgeArea> implements IKnowledgeAreaRepository {
-    async getKnowledgeAreaWithUrl(): Promise<Array<KnowledgeArea>> {
-        let connection: any;
-        try {
-            connection = await initMysql();
-            return await connection.getRepository(KnowledgeArea).getMany();
-        } catch (err) {
-            throw err;
-        }
-    }
+export class KnowledgeAreaRepository
+  extends AbstractRepository<KnowledgeArea>
+  implements IKnowledgeAreaRepository
+{
+  async getKnowledgeAreaWithUrl(
+    connection: Connection
+  ): Promise<Array<KnowledgeArea>> {
+    return connection
+      .getRepository(KnowledgeArea)
+      .createQueryBuilder("knowledgearea")
+      .getMany();
+  }
 }
