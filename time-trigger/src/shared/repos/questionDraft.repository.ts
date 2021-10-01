@@ -33,13 +33,6 @@ export class QuestionDraftRepository
     return connection
       .getRepository(QuestionDraft)
       .createQueryBuilder("questiondraft")
-      .distinctOn([
-        "questiondraft.orderId",
-        "questiondraft.knowledgeAreaId",
-        "questiondraft.majorVersion",
-        "questiondraft.patchVersion",
-        "questiondraft.minorVersion "
-      ])
       .getMany();
   }
 
