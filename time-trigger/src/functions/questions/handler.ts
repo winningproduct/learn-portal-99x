@@ -130,6 +130,7 @@ const questions: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
         questionsList.majorQuestionList
     );
 
+    let updateResponse = [];
     if (questionsList.minorQuestionList && questionsList.minorQuestionList.length) {
       let updatePromises = [];
       forEach(
@@ -159,11 +160,11 @@ const questions: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
         }
       );
       if (updatePromises && updatePromises.length)
-          await Promise.allSettled(updatePromises);
+        updateResponse =  await Promise.allSettled(updatePromises);
     }
 
     return formatJSONResponse({
-      message: [questionsList]
+      message: [updateResponse]
     });
   } catch (error) {
     console.error(error);
