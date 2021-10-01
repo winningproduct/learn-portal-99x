@@ -10,7 +10,7 @@ export class KnowledgeAreaRepository extends AbstractRepository<KnowledgeArea> i
         let connection: any;
         try {
             connection = await initMysql();
-            return await connection.getRepository(KnowledgeArea).createQueryBuilder("user").getMany();
+            return await connection.getRepository(KnowledgeArea).getMany();
         } catch (err) {
             throw err;
         }

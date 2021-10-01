@@ -9,18 +9,30 @@ export class QuestionDraftRepository extends AbstractRepository<QuestionDraft> i
     let connection: any;
     try {
       connection = await initMysql();
-      // const questionDraft = new QuestionDraft();
-      // questionDraft.orderId = Number(_questionDraft.orderId);
-      // questionDraft.questionDescription = _questionDraft.questionDescription;
-      // questionDraft.knowledgeAreaId = Number(_questionDraft.knowledgeAreaId);
-      // questionDraft.version = _questionDraft.version;
-      // questionDraft.majorVersion = _questionDraft.majorVersion;
-      // questionDraft.minorVersion = _questionDraft.minorVersion;
-      // questionDraft.patchVersion = _questionDraft.patchVersion;
       await connection.manager.save(_questionDraft);
       return true;
     } catch (err) {
       throw err;
+    }
+  }
+
+  async getAllQuestions(): Promise<Array<QuestionDraft>> {
+    let connection: any;
+    try {
+        connection = await initMysql();
+        return await connection.getRepository().getMany();
+    } catch (err) {
+        throw err;
+    }
+  }
+
+  async updateQuestions(): Promise<Array<QuestionDraft>> {
+    let connection: any;
+    try {
+        connection = await initMysql();
+        return await connection.getRepository().getMany();
+    } catch (err) {
+        throw err;
     }
   }
 }
