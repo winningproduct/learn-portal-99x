@@ -4,7 +4,7 @@
   "description": "Serverless aws-nodejs-typescript template",
   "main": "serverless.ts",
   "scripts": {
-    "start": "sls offline --stage local --httpPort 5001 --lambdaPort 3001 --useChildProcesses",
+    "start": "sls offline --stage dev --httpPort 5001 --lambdaPort 3001 --useChildProcesses",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {

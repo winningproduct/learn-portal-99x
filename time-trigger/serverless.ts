@@ -23,12 +23,18 @@ const serverlessConfiguration: AWS = {
   provider: {
     name: "aws",
     runtime: "nodejs14.x",
+    stage: "${opt:stage, 'dev'}",
+    region: "ap-south-1",
     apiGateway: {
       minimumCompressionSize: 1024,
       shouldStartNameWithService: true
     },
     environment: {
-      AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
+      AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1",
+      DB_HOST: "${ssm:/dbHost/${self:provider.stage}~true}",
+      DB_NAME: "${ssm:/dbName/${self:provider.stage}~true}",
+      DB_USERNAME: "${ssm:/dbUsername/${self:provider.stage}~true}",
+      DB_PASSWORD: "${ssm:/dbPassword/${self:provider.stage}~true}"
     },
     lambdaHashingVersion: "20201221"
   },
