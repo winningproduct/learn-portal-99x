@@ -6,7 +6,6 @@ import { middyfy } from "@libs/lambda";
 import axios from "axios";
 import { get, forEach, find, filter, orderBy } from "lodash";
 
-import schema from "./schema";
 import { QuestionDraftRepository } from "src/shared/repos/questionDraft.repository";
 import { QuestionDraft } from "src/shared/repos/mysql/entity/question_draft";
 import { KnowledgeAreaRepository } from "../../shared/repos/knowledgeArea.repository";
@@ -43,41 +42,50 @@ function transformKnowledgeAreaToApiUrl(
 function getQuestions(
   allQuestions: Array<QuestionDraft>,
   questionList: Array<QuestionDraft>
-) : any {
+): any {
   let allMajorQuestions = [];
   let allMinorQuestions = [];
   forEach(questionList, (apiQuestion) => {
     // find all question related to that knowledge area and order id but different versions
     const questionsInKnowledgeArea = filter(
-        allQuestions,
-        (dbQuestion) =>
-            apiQuestion.knowledgeAreaId === dbQuestion.knowledgeAreaId &&
-            apiQuestion.orderId === dbQuestion.orderId
+      allQuestions,
+      (dbQuestion) =>
+        apiQuestion.knowledgeAreaId === dbQuestion.knowledgeAreaId &&
+        apiQuestion.orderId === dbQuestion.orderId
     );
 
     const latestQuestionsInKnowledgeArea = orderBy(
-        questionsInKnowledgeArea, ['majorVersion'], ['desc']
+      questionsInKnowledgeArea,
+      ["majorVersion"],
+      ["desc"]
     );
 
     const latestQuestionInKnowledgeArea = latestQuestionsInKnowledgeArea[0];
 
-    if (!latestQuestionInKnowledgeArea || apiQuestion.majorVersion > latestQuestionInKnowledgeArea.majorVersion) {
+    if (
+      !latestQuestionInKnowledgeArea ||
+      apiQuestion.majorVersion > latestQuestionInKnowledgeArea.majorVersion
+    ) {
       allMajorQuestions = [...allMajorQuestions, apiQuestion];
     } else {
       // if not the same minor version then update else ignore
       const matchingVersionQuestion = find(
-          latestQuestionsInKnowledgeArea, (knowledgeAreaQuestion) =>
-              (knowledgeAreaQuestion.majorVersion == apiQuestion.majorVersion &&
-              (knowledgeAreaQuestion.minorVersion < apiQuestion.minorVersion
-                  || knowledgeAreaQuestion.patchVersion < apiQuestion.patchVersion))
+        latestQuestionsInKnowledgeArea,
+        (knowledgeAreaQuestion) =>
+          knowledgeAreaQuestion.majorVersion == apiQuestion.majorVersion &&
+          (knowledgeAreaQuestion.minorVersion < apiQuestion.minorVersion ||
+            knowledgeAreaQuestion.patchVersion < apiQuestion.patchVersion)
       );
-      if(matchingVersionQuestion){
+      if (matchingVersionQuestion) {
         allMinorQuestions = [...allMinorQuestions, apiQuestion];
       }
     }
   });
 
-  return ({ 'majorQuestionList': allMajorQuestions, 'minorQuestionList': allMinorQuestions });
+  return {
+    majorQuestionList: allMajorQuestions,
+    minorQuestionList: allMinorQuestions
+  };
 }
 
 async function getJsonData(knowledgeDtoList: Array<KnowledgeDto>) {
@@ -88,9 +96,7 @@ async function getJsonData(knowledgeDtoList: Array<KnowledgeDto>) {
   return knowledgeDtoList;
 }
 
-const questions: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
-  event
-) => {
+const questions: ValidatedEventAPIGatewayProxyEvent<object> = async (event) => {
   try {
     const knowledgeBaseRepository = new KnowledgeAreaRepository();
     const questionDraftRepository = new QuestionDraftRepository();
@@ -127,14 +133,17 @@ const questions: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
 
     await questionDraftRepository.addQuestions(
       connection,
-        questionsList.majorQuestionList
+      questionsList.majorQuestionList
     );
 
     let updateResponse = [];
-    if (questionsList.minorQuestionList && questionsList.minorQuestionList.length) {
+    if (
+      questionsList.minorQuestionList &&
+      questionsList.minorQuestionList.length
+    ) {
       let updatePromises = [];
       forEach(
-          questionsList.minorQuestionList,
+        questionsList.minorQuestionList,
         ({
           orderId,
           knowledgeAreaId,
@@ -160,7 +169,7 @@ const questions: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
         }
       );
       if (updatePromises && updatePromises.length)
-        updateResponse =  await Promise.allSettled(updatePromises);
+        updateResponse = await Promise.allSettled(updatePromises);
     }
 
     return formatJSONResponse({

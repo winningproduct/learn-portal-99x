@@ -25,6 +25,7 @@ const serverlessConfiguration: AWS = {
     runtime: "nodejs14.x",
     stage: "${opt:stage, 'dev'}",
     region: "ap-south-1",
+    timeout: 120,
     apiGateway: {
       minimumCompressionSize: 1024,
       shouldStartNameWithService: true

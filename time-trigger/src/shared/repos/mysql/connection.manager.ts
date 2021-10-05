@@ -1,6 +1,7 @@
 import { Connection, getConnectionManager } from "typeorm";
 import { QuestionDraft } from "./entity/question_draft";
 import { KnowledgeArea } from "./entity/knowledgeArea";
+import 'mysql';
 
 const {
   env: { DB_HOST, DB_NAME, DB_USERNAME, DB_PASSWORD}
