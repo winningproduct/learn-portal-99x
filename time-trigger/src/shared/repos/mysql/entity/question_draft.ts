@@ -15,7 +15,10 @@ export class QuestionDraft {
   orderId!: number;
 
   @Column()
-  questionDescription!: string;
+  title!: string;
+
+  @Column()
+  description!: string;
 
   @Column()
   version!: string;

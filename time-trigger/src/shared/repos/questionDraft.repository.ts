@@ -43,14 +43,15 @@ export class QuestionDraftRepository
     majorVersion: number,
     minorVersion: number,
     patchVersion: number,
-    questionDescription: string,
+    title: string,
+    description: string,
     version: string
   ): Promise<UpdateResult> {
     return connection
       .getRepository(QuestionDraft)
       .createQueryBuilder()
       .update(QuestionDraft)
-      .set({ minorVersion, patchVersion, questionDescription, version })
+      .set({ minorVersion, patchVersion, title, description, version })
       .where("orderId = :orderId", { orderId })
       .andWhere("knowledgeAreaId = :knowledgeAreaId", {
         knowledgeAreaId

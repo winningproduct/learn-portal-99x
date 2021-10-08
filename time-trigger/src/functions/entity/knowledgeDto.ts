@@ -1,3 +1,5 @@
+import { QuestionDto } from "./QuestionDto";
+
 export class KnowledgeDto {
     url: string;
     id: number;
@@ -5,5 +7,5 @@ export class KnowledgeDto {
     phaseIdUrl: string;
     subCategoryUrl: string;
     apiUrl: string;
-    questions: any;
+    questions: Array<QuestionDto>;
 }

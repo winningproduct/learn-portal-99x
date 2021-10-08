@@ -117,10 +117,11 @@ const questions: ValidatedEventAPIGatewayProxyEvent<object> = async (event) => {
         if (question.version != null) {
           const questionDraft = new QuestionDraft();
           questionDraft.knowledgeAreaId = area.id;
-          questionDraft.questionDescription = question.question;
+          questionDraft.title = question.expectation;
+          questionDraft.description = question.question;
           questionDraft.orderId = question.order;
           questionDraft.version = question.version;
-          const versioningArray = question.version?.split(".", 3);
+          const versioningArray = question.version?.split(".", 3).map(version => { return parseInt(version)});
           questionDraft.majorVersion = versioningArray[0] ?? 0;
           questionDraft.minorVersion = versioningArray[1] ?? 0;
           questionDraft.patchVersion = versioningArray[2] ?? 0;
@@ -150,7 +151,8 @@ const questions: ValidatedEventAPIGatewayProxyEvent<object> = async (event) => {
           majorVersion,
           minorVersion,
           patchVersion,
-          questionDescription,
+           title,
+          description,
           version
         }) => {
           updatePromises = [
@@ -162,7 +164,8 @@ const questions: ValidatedEventAPIGatewayProxyEvent<object> = async (event) => {
               majorVersion,
               minorVersion,
               patchVersion,
-              questionDescription,
+              title,
+              description,
               version
             )
           ];
