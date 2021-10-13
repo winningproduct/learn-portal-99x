@@ -1,5 +1,5 @@
 [build]
-  publish = "public"
+  publish = "portal/public"
   command = "npm run build"
   
 [[plugins]]
